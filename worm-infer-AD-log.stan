@@ -5,7 +5,7 @@
 // Worm burden fitted on log scale
 // Incorporates Antigen test results
 // Multiple clusters - variable M by cluster - k is constant
-// Negative binomial, density dependent egg output (power-law)
+// Neg binomial, density dependent egg output - Algebraic Decay
 
 data {
   int<lower=1> N; //individuals
@@ -21,7 +21,7 @@ data {
   int<lower=100> big_int; //sum values of n from zero to this number
   int<lower=0, upper=1> egg_neg[N]; //indicates if person egg negative or not
   real<lower=0> stool_mass[N]; //mass of stool sample in grams
-   int<lower=1> stool_drops[N]; //number of drops in FECT concentrate
+  int<lower=1> stool_drops[N]; //number of drops in FECT concentrate
   //worm fecundity data
   int<lower=0> Nw;
   int<lower=0> E[Nw];
@@ -32,8 +32,12 @@ data {
 
 transformed data{
   row_vector[big_int] worms;
+  row_vector[N] stool_factor;
   for(j in 1:big_int)
     worms[j] = j-1;
+  //factor to modify eggs to EPG
+  for(i in 1:N)
+    stool_factor[i] = stool_mass[i]/stool_drops[i];
 }  
 
 parameters {
@@ -43,8 +47,8 @@ parameters {
   real<lower=0, upper=1> se; //antigen test sensitivity
   real<lower=1> M_mu; //Log normal hyperprior of M
   real<lower=0> M_sd;  //Log normal hyperprior of M
-  real<lower=0> y1; //worm fecundity param (power law)
-  real<lower=0,upper=1> gamma; //worm fecundity param (power law)
+  real<lower=0> L0; //worm fecundity param (alg decay)
+  real<lower=0> M0; //worm fecundity param (alg decay)
 }
 
 transformed parameters {
@@ -60,22 +64,22 @@ model {
   row_vector[big_int] epg;  //store epg for integer worm counts
   row_vector[N_clusters] antigen_prob;
   matrix[N_clusters, big_int] worm_prior;
-  vector[Nw] expected_eggs;  //store epg predicted by model
+  vector[Nw] expected_epg;  //store epg predicted by model
   
   //worm fecundity data
   for(i in 1:Nw){
-    expected_eggs[i] = y1*W[i]^gamma; //power law function
+    expected_epg[i] = (L0*M0*W[i])/(W[i]+M0); //alg decay function
     if (E[i]==0 && W[i]==0)
         target += 1;
     else if (E[i]>0 && W[i]==0)
         target += negative_infinity();
     else
-        target += poisson_lpmf(E[i] | expected_eggs[i]) + neg_binomial_2_lpmf(W[i] | M[(study[i]+N_clusters)], k); 
+        target += poisson_lpmf(E[i] | expected_epg[i]) + neg_binomial_2_lpmf(W[i] | M[(study[i]+N_clusters)], k); 
   }
   
   //predicted epg given worm burden (starts at zero)
   for(i in 1:big_int)
-    epg[i] = y1*worms[i]^gamma;
+    epg[i]= (L0*M0*worms[i])/(worms[i]+M0);
   
   //Calculate prob. antigen test positive per cluster
   for(i in 1:N_clusters){
@@ -89,8 +93,8 @@ model {
 //Calculate probabilites
   for(i in 1:N){
     row_vector[big_int] marginal;
-    row_vector[big_int] expected_epg;
-    expected_epg = epg*stool_mass[i]; //eggs per gram * grams of stool
+    row_vector[big_int] expected_eggs;
+    expected_eggs = epg*stool_factor[i]; //eggs per gram * grams of stool / number of drops
     if(egg_neg[i]==0){ //if all egg counts are zero
       marginal[1] = worm_prior[cluster[i],1] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i]; //special case, worms (j)=0
       for(j in 2:big_int){  //worms (j) from 1:(big_int-1)
@@ -108,8 +112,8 @@ model {
   }
   
   //prior distributions
-  y1 ~ gamma(20, 5);
-  gamma ~ beta(755, 245); //strong prior for density dependence - informed by extracted worm fecund. data
+  M0 ~ normal(1174, 3);
+  L0 ~ beta(23, 3); //strong prior for density dependence - informed by extracted worm fecund. data
   M_log ~ normal(M_mu, M_sd);
   M_mu ~ normal(0, 4);    //allow M to vary by cluster
   M_sd ~ normal(1, 3);
