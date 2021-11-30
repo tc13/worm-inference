@@ -37,7 +37,7 @@ transformed data{
 }  
 
 parameters {
-  real M_log[(N_clusters+N_studies)]; //mean log worm burden in population
+  real M_ln[(N_clusters+N_studies)]; //mean log worm burden in population
   real<lower=0> k; //worm dispersion parameter
   real<lower=0, upper=1> sp; //antigen test specificity
   real<lower=0, upper=1> se; //antigen test sensitivity
@@ -50,7 +50,7 @@ parameters {
 transformed parameters {
   real<lower=0> M[(N_clusters+N_studies)];
   real<lower=0, upper=1> p[(N_clusters+N_studies)]; //prevalence from negative binomial distribution
-  M = exp(M_log);
+  M = exp(M_ln);
   for(i in 1:(N_clusters+N_studies))
    p[i] = 1-(1+M[i]/k)^-k; //calculate p for each cluster
 }
@@ -110,7 +110,7 @@ model {
   //prior distributions
   y1 ~ gamma(20, 5);
   gamma ~ beta(755, 245); //strong prior for density dependence - informed by extracted worm fecund. data
-  M_log ~ normal(M_mu, M_sd);
+  M_ln ~ normal(M_mu, M_sd);
   M_mu ~ normal(0, 4);    //allow M to vary by cluster
   M_sd ~ normal(1, 3);
   k ~ normal(0.1, 0.2);   //strong prior on k - Burli et al.
