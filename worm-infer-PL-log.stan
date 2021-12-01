@@ -33,30 +33,32 @@ data {
 transformed data{
   row_vector[big_int] worms;
   row_vector[N] stool_factor;
+  int reffects;
   for(j in 1:big_int)
     worms[j] = j-1;
   //factor to modify EPG to eggs
   for(i in 1:N)
     stool_factor[i] = stool_mass[i]/stool_drops[i];
+  reffects = N_clusters+N_studies;
 }  
 
 parameters {
-  real M_ln[(N_clusters+N_studies)]; //mean log worm burden in population
+  real M_ln[reffects]; //mean log worm burden in population
   real<lower=0> k; //worm dispersion parameter
   real<lower=0, upper=1> sp; //antigen test specificity
   real<lower=0, upper=1> se; //antigen test sensitivity
-  real<lower=1> M_mu; //Log normal hyperprior of M
+  real M_mu; //Log normal hyperprior of M
   real<lower=0> M_sd;  //Log normal hyperprior of M
   real<lower=0> y1; //worm fecundity param (power law)
   real<lower=0,upper=1> gamma; //worm fecundity param (power law)
 }
 
 transformed parameters {
-  real<lower=0> M[(N_clusters+N_studies)];
-  real<lower=0, upper=1> p[(N_clusters+N_studies)]; //prevalence from negative binomial distribution
+  real<lower=0> M[reffects];
+  real<lower=0, upper=1> p[reffects]; //prevalence from negative binomial distribution
   M = exp(M_ln);
-  for(i in 1:(N_clusters+N_studies))
-   p[i] = 1-(1+M[i]/k)^-k; //calculate p for each cluster
+  for(i in 1:reffects)
+    p[i] = 1-(1+M[i]/k)^-k; //calculate p for each cluster
 }
 
 model {
@@ -64,17 +66,17 @@ model {
   row_vector[big_int] epg;  //store epg for integer worm counts
   row_vector[N_clusters] antigen_prob;
   matrix[N_clusters, big_int] worm_prior;
-  vector[Nw] expected_eggs;  //store epg predicted by model
+  vector[Nw] expected_epg;  //store epg predicted by model
   
   //worm fecundity data
   for(i in 1:Nw){
-    expected_eggs[i] = y1*W[i]^gamma; //power law function
+    expected_epg[i] = y1*W[i]^gamma; //power law function
     if (E[i]==0 && W[i]==0)
         target += 1;
     else if (E[i]>0 && W[i]==0)
         target += negative_infinity();
     else
-        target += poisson_lpmf(E[i] | expected_eggs[i]) + neg_binomial_2_lpmf(W[i] | M[(study[i]+N_clusters)], k); 
+        target += poisson_lpmf(E[i] | expected_epg[i]) + neg_binomial_2_lpmf(W[i] | M[(study[i]+N_clusters)], k); 
   }
   
   //predicted epg given worm burden (starts at zero)
@@ -93,17 +95,17 @@ model {
 //Calculate probabilites
   for(i in 1:N){
     row_vector[big_int] marginal;
-    row_vector[big_int] expected_epg;
-    expected_epg = epg*stool_factor[i]; //eggs per gram * grams of stool / number of drops
+    row_vector[big_int] expected_eggs;
+    expected_eggs = epg*stool_factor[i]; //eggs per gram * grams of stool / number of drops
     if(egg_neg[i]==0){ //if all egg counts are zero
       marginal[1] = worm_prior[cluster[i],1] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i]; //special case, worms (j)=0
       for(j in 2:big_int){  //worms (j) from 1:(big_int-1)
-            marginal[j] = poisson_lpmf(0 | expected_epg[j])*slides[i] + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
+            marginal[j] = poisson_lpmf(0 | expected_eggs[j])*slides[i] + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
        }
      }else{ //at least 1 non-zero egg count
       marginal[1] =  negative_infinity(); //special case, worms (j)=0
       for(j in 2:big_int){  //worms (j) from 1:(big_int-1)
-            marginal[j] = poisson_lpmf(eggs[slide1[i]:slide2[i]] | expected_epg[j]) + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
+            marginal[j] = poisson_lpmf(eggs[slide1[i]:slide2[i]] | expected_eggs[j]) + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
         }
      }
 

@@ -33,29 +33,31 @@ data {
 transformed data{
   row_vector[big_int] worms;
   row_vector[N] stool_factor;
+  int reffects;
   for(j in 1:big_int)
     worms[j] = j-1;
   //factor to modify EPG to eggs
   for(i in 1:N)
     stool_factor[i] = stool_mass[i]/stool_drops[i];
+  reffects = N_clusters+N_studies;
 }  
 
 parameters {
-  real M_ln[(N_clusters+N_studies)]; //mean log worm burden in population
+  real M_ln[reffects]; //mean log worm burden in population
   real<lower=0> k; //worm dispersion parameter
   real<lower=0, upper=1> sp; //antigen test specificity
   real<lower=0, upper=1> se; //antigen test sensitivity
-  real<lower=1> M_mu; //Log normal hyperprior of M
+  real M_mu; //Log normal hyperprior of M
   real<lower=0> M_sd;  //Log normal hyperprior of M
   real<lower=0> L0; //worm fecundity param (alg decay)
   real<lower=0> M0; //worm fecundity param (alg decay)
 }
 
 transformed parameters {
-  real<lower=0> M[(N_clusters+N_studies)];
-  real<lower=0, upper=1> p[(N_clusters+N_studies)]; //prevalence from negative binomial distribution
+  real<lower=0> M[reffects];
+  real<lower=0, upper=1> p[reffects]; //prevalence from negative binomial distribution
   M = exp(M_ln);
-  for(i in 1:(N_clusters+N_studies))
+  for(i in 1:reffects)
    p[i] = 1-(1+M[i]/k)^-k; //calculate p for each cluster
 }
 
@@ -98,12 +100,12 @@ model {
     if(egg_neg[i]==0){ //if all egg counts are zero
       marginal[1] = worm_prior[cluster[i],1] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i]; //special case, worms (j)=0
       for(j in 2:big_int){  //worms (j) from 1:(big_int-1)
-            marginal[j] = poisson_lpmf(0 | expected_epg[j])*slides[i] + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
+            marginal[j] = poisson_lpmf(0 | expected_eggs[j])*slides[i] + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
        }
      }else{ //at least 1 non-zero egg count
       marginal[1] =  negative_infinity(); //special case, worms (j)=0
       for(j in 2:big_int){  //worms (j) from 1:(big_int-1)
-            marginal[j] = poisson_lpmf(eggs[slide1[i]:slide2[i]] | expected_epg[j]) + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
+            marginal[j] = poisson_lpmf(eggs[slide1[i]:slide2[i]] | expected_eggs[j]) + worm_prior[cluster[i], j] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i];
         }
      }
 
@@ -113,7 +115,7 @@ model {
   
   //prior distributions
   M0 ~ normal(1174, 3);
-  L0 ~ beta(23, 3); //strong prior for density dependence - informed by extracted worm fecund. data
+  L0 ~ normal(23, 3); //strong prior for density dependence - informed by extracted worm fecund. data
   M_ln ~ normal(M_mu, M_sd);
   M_mu ~ normal(0, 4);    //allow M to vary by cluster
   M_sd ~ normal(1, 3);
