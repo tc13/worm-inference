@@ -35,7 +35,7 @@ transformed data{
   row_vector[N] stool_factor;
   for(j in 1:big_int)
     worms[j] = j-1;
-  //factor to modify eggs to EPG
+  //factor to modify EPG to eggs
   for(i in 1:N)
     stool_factor[i] = stool_mass[i]/stool_drops[i];
 }  

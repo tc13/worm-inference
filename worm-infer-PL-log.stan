@@ -32,8 +32,12 @@ data {
 
 transformed data{
   row_vector[big_int] worms;
+  row_vector[N] stool_factor;
   for(j in 1:big_int)
     worms[j] = j-1;
+  //factor to modify EPG to eggs
+  for(i in 1:N)
+    stool_factor[i] = stool_mass[i]/stool_drops[i];
 }  
 
 parameters {
@@ -90,7 +94,7 @@ model {
   for(i in 1:N){
     row_vector[big_int] marginal;
     row_vector[big_int] expected_epg;
-    expected_epg = epg*stool_mass[i]; //eggs per gram * grams of stool
+    expected_epg = epg*stool_factor[i]; //eggs per gram * grams of stool / number of drops
     if(egg_neg[i]==0){ //if all egg counts are zero
       marginal[1] = worm_prior[cluster[i],1] + bernoulli_lpmf(antigen[i] | antigen_prob[cluster[i]])*urine[i]; //special case, worms (j)=0
       for(j in 2:big_int){  //worms (j) from 1:(big_int-1)
