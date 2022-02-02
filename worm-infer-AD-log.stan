@@ -51,6 +51,7 @@ parameters {
   real<lower=0> M_sd;  //Log normal hyperprior of M
   real<lower=0> L0; //worm fecundity param (alg decay)
   real<lower=0> M0; //worm fecundity param (alg decay)
+  real<lower=0, upper=1> Pr_egg; //prob. of observing egg (FECT sensitivity)
 }
 
 transformed parameters {
@@ -70,7 +71,7 @@ model {
   
   //worm fecundity data
   for(i in 1:Nw){
-    expected_epg[i] = (L0*M0*W[i])/(W[i]+M0); //alg decay function
+    expected_epg[i] = (L0*M0*W[i])/(W[i]+M0); //alg decay func - returns real value
     if (E[i]==0 && W[i]==0)
         target += 1;
     else if (E[i]>0 && W[i]==0)
@@ -81,7 +82,7 @@ model {
   
   //predicted epg given worm burden (starts at zero)
   for(i in 1:big_int)
-    epg[i]= (L0*M0*worms[i])/(worms[i]+M0);
+    epg[i]= (L0*M0*worms[i])/(worms[i]+M0)*Pr_egg; //real value - modified by FECT specificity
   
   //Calculate prob. antigen test positive per cluster
   for(i in 1:N_clusters){
@@ -114,12 +115,13 @@ model {
   }
   
   //prior distributions
-  M0 ~ normal(1174, 3);
-  L0 ~ normal(23, 3); //strong prior for density dependence - informed by extracted worm fecund. data
+  M0 ~ normal(1174, 35);
+  L0 ~ normal(23, 5);   //strong prior for density dependence informed by worm fecund. data
   M_ln ~ normal(M_mu, M_sd);
-  M_mu ~ normal(0, 4);    //allow M to vary by cluster
-  M_sd ~ normal(1, 3);
-  k ~ normal(0.1, 0.2);   //strong prior on k - Burli et al.
-  sp ~ beta(669, 65);     //Strong priors - from Worasith et al. 2019 https://journals.plos.org/plosntds/article?id=10.1371/journal.pntd.0007186 
-  se ~ beta(269, 44); 
+  M_mu ~ normal(0, 4);  //allow M to vary by cluster
+  M_sd ~ normal(2, 1.5);
+  k ~ normal(0.1, 0.3); //strong prior on k - Burli et al.
+  sp ~ beta(669, 65);   //Strong priors - from Worasith et al. 2019 https://journals.plos.org/plosntds/article?id=10.1371/journal.pntd.0007186 
+  se ~ beta(269, 44);
+  Pr_egg ~ beta(35, 36);  //Prior for FECT sensitivity from Lovis et al. https://doi.org/10.1128/JCM.02011-08 
 }
