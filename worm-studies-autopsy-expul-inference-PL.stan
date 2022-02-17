@@ -2,16 +2,16 @@
 //Multi-study model, power law function
 
 data {
-  int<lower=1> N_expul;     //Number of individuals from worm expulsion studies study
-  int<lower=1> N_autopsy;
-  int<lower=0> epg_expul[N_expul];     //Reported eggs per gram per person
-  int<lower=0> worms_expul[N_expul];   //Observed worms expelled per person
-  int<lower=0> epg_autopsy[N_autopsy];     //Reported eggs per gram per person
-  int<lower=0> worms_autopsy[N_autopsy];   //Observed worms expelled per person
+  int<lower=1> N_expul;     //Number of individuals in worm expulsion studies studies
+  int<lower=1> N_autopsy;  //Number of individuals in autopsy studies study
+  int<lower=0> epg_expul[N_expul];     //Reported eggs per gram per person (expulsion)
+  int<lower=0> worms_expul[N_expul];   //Observed worms expelled per person (expulsion)
+  int<lower=0> epg_autopsy[N_autopsy];     //Reported eggs per gram per person (autopsy)
+  int<lower=0> worms_autopsy[N_autopsy];   //Observed worms expelled per person (autopsy)
   int<lower=2> N_expul_studies;  //Number of expulsion studies
   int<lower=1> N_autopsy_studies; //Num of autopsy studies
   int<lower=1, upper=N_expul_studies> study_id[N_expul]; //study ID
-  int<lower=1,upper=N_expul_studies> ramsay_id;
+  int<lower=1,upper=N_expul_studies> ramsay_id; //indicates which study is Ramsay et al. using Stoll dilution method
   int<lower=1> delta_worm; //Difference between observed worm burden and possible max
 }
 
@@ -27,7 +27,7 @@ transformed data{
 parameters {
   real<lower=0> y1; //worm fecundity param (power law)
   real<lower=0,upper=1> gamma; //worm fecundity param (power law)
-  real M_log[N_studies];       //Mean worm burden (log scale)
+  real<lower=0> M[N_studies];  //Mean worm burden
   real<lower=0> k[N_studies];  //dispersion of worms
   real<lower=0, upper=1> pr_recovery; //probability of worm recovery from expulsion
   real<lower=0> k_mean; //hyper-parameter for k
@@ -36,12 +36,10 @@ parameters {
 }
 
 transformed parameters{
-   real M[N_studies];  //Mean worm burden (normal scale)
    matrix[N_expul,delta_worm] marginal_expul; //Marginal probability of each possible worm value
    matrix[N_autopsy, 4] marginal_autopsy; //Marginal probability of each possible worm value
    vector[max_worm] epg_expected; //Expected egg output given worm value
    row_vector[N] epg_factor; //EPG correction factor
-   M = exp(M_log);
    epg_factor = rep_row_vector(1, N); //defaults to 1
    for(i in 1:max_worm){
      epg_expected[i] = y1*i^gamma; //power law function;
@@ -90,12 +88,13 @@ model{
   
     //prior distributions
     y1 ~ gamma(20, 5);
-    gamma ~ beta(755, 245); //strong prior for density dependence - informed by extracted worm fecund. data
-    M_log ~ normal(4, 4);
+    gamma ~ beta(200, 200); //strong prior for density dependence - informed by extracted worm fecund. data
+    M ~ normal(100, 20);
     k ~ normal(k_mean, k_sd);
     pr_recovery ~ beta(850,200);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(1, 2);
+    stoll_factor ~ normal(100, 50);
 }
 
 generated quantities{
