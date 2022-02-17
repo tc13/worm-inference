@@ -1,5 +1,6 @@
 //inference model for worm burden from expulsion studies
 //Multi-study model, algebraic decay function
+//neg binom variance in egg output
 
 data {
   int<lower=1> N_expul;     //Number of individuals from worm expulsion studies study
@@ -33,6 +34,7 @@ parameters {
   real<lower=0> k_mean; //hyper-parameter for k
   real<lower=0> k_sd; //hyper-parameter for k
   real<lower=1> stoll_factor;
+  real<lower=0> h; //neg binom variance in egg output
 }
 
 transformed parameters{
@@ -54,17 +56,17 @@ transformed parameters{
      if(epg_expul[i]==0 && worms_expul[i]==0){ //if no observed eggs or worms
           marginal_expul[i,1] = neg_binomial_2_lpmf(0 | M[study_id[i]], k[study_id[i]]);
           for(j in 2:delta_worm){
-              marginal_expul[i,j] = poisson_lpmf(0 | (epg_expected[(j-1)]/epg_factor[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);//binomial_lpmf(0 | (j-1), pr_recovery(rate_recovery, (j-1)));
+              marginal_expul[i,j] = neg_binomial_2_lpmf(0 | (epg_expected[(worms_expul[i]+j-1)]/epg_factor[i]),h) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
           }
       }
         else if(epg_expul[i]>0 && worms_expul[i]==0){ //if eggs observed but no worms
            marginal_expul[i,1] = negative_infinity(); //impossible that there are zero worms
            for(j in 2:delta_worm){
-              marginal_expul[i,j] = poisson_lpmf(epg_expul[i] | (epg_expected[(j-1)]/epg_factor[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery); //binomial_lpmf(0 | (j-1), pr_recovery(rate_recovery, (j-1))); 
+              marginal_expul[i,j] = neg_binomial_2_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]/epg_factor[i]),h) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery); 
            }
         }else{ //if >0 worms observed
           for(j in 1:delta_worm){
-            marginal_expul[i,j] = poisson_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]/epg_factor[i])) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);//binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery(rate_recovery, (worms_expul[i]+j-1)));
+            marginal_expul[i,j] = neg_binomial_2_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]/epg_factor[i]),h) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
           }
         }
       }
@@ -74,7 +76,7 @@ transformed parameters{
           marginal_autopsy[i] = rep_row_vector(log(0.25),4);
         else{
           for(j in 1:4){
-            marginal_autopsy[i,j] = poisson_lpmf(epg_autopsy[i] | epg_expected[worms_autopsy[i]]*j) + neg_binomial_2_lpmf(worms_autopsy[i] | M[N_studies], k[N_studies]);
+            marginal_autopsy[i,j] = neg_binomial_2_lpmf(epg_autopsy[i] | epg_expected[worms_autopsy[i]]*j,h) + neg_binomial_2_lpmf(worms_autopsy[i] | M[N_studies], k[N_studies]);
           }
         }
     }
@@ -93,9 +95,10 @@ model{
     M0 ~ normal(23, 6);
     M_log ~ normal(4, 4);
     k ~ normal(k_mean, k_sd);
-    pr_recovery ~ beta(850,200);
+    pr_recovery ~ beta(80,20);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(1, 2);
+    h ~ exponential(1);
 }
 
 generated quantities{
