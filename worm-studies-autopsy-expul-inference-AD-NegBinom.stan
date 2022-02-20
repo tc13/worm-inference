@@ -102,9 +102,14 @@ model{
 
 generated quantities{
   matrix[N_expul,delta_worm] pState; //normalised probabilties for latent discrete parameter
-  matrix[N_autopsy, 4] aut_state;
-  for(i in 1:N_expul)
+  matrix[N_autopsy, 4] aut_state;    //normalised probabilties for latent discrete parameter
+  vector[N] log_lik;    //store log likelihood for model comparison 
+  for(i in 1:N_expul){
     pState[i] = exp(marginal_expul[i] - log_sum_exp(marginal_expul[i])); //normalise marginal prob
-  for(i in 1:N_autopsy)
+    log_lik[i] = log_sum_exp(marginal_expul[i]);
+  }
+  for(i in 1:N_autopsy){
     aut_state[i] = exp(marginal_autopsy[i] - log_sum_exp(marginal_autopsy[i]));
+    log_lik[(i+N_expul)] = log_sum_exp(marginal_autopsy[i]);
+  }
 }
