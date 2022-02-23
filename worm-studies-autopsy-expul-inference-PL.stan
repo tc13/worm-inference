@@ -89,11 +89,14 @@ model{
     //prior distributions
     y1 ~ gamma(20, 5);
     gamma ~ beta(200, 200); //strong prior for density dependence - informed by extracted worm fecund. data
-    M ~ normal(100, 20);
+    M[1] ~ normal(39, 10);  //prior for Elkins study
+    M[2] ~ normal(187, 10); //prior for Sayasone study
+    M[3] ~ normal(85, 10);  //prior for Ramsay study
+    M[4] ~ normal(160, 10); //prior for Autopsy study
     k ~ normal(k_mean, k_sd);
     pr_recovery ~ beta(850,200);
     k_mean ~ normal(0.5, 2);
-    k_sd ~ normal(1, 2);
+    k_sd ~ normal(0.5, 1);
     stoll_factor ~ normal(100, 50);
 }
 
