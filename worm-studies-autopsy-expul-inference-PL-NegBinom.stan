@@ -99,7 +99,7 @@ model{
     pr_recovery ~ beta(850,200);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
-    h ~ exponential(1);
+    h ~ normal(1.4, 0.1);
     stoll_factor ~ normal(100, 50);
 }
 

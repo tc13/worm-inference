@@ -87,8 +87,8 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
     
     //prior distributions
-    L0 ~ normal(1174, 40);
-    M0 ~ normal(23, 6);
+    L0 ~ normal(50, 25);
+    M0 ~ normal(500, 100);
     M[1] ~ normal(39, 10);  //prior for Elkins study
     M[2] ~ normal(187, 10); //prior for Sayasone study
     M[3] ~ normal(85, 10);  //prior for Ramsay study
