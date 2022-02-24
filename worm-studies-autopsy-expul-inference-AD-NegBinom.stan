@@ -90,16 +90,16 @@ model{
     
     //prior distributions
     L0 ~ normal(50, 25);
-    M0 ~ normal(500, 100);
-    M[1] ~ normal(39, 10);  //prior for Elkins study
-    M[2] ~ normal(187, 10); //prior for Sayasone study
-    M[3] ~ normal(85, 10);  //prior for Ramsay study
-    M[4] ~ normal(160, 10); //prior for Autopsy study
+    M0 ~ normal(1000, 50);
+    M[1] ~ normal(39, 20);  //prior for Elkins study
+    M[2] ~ normal(187, 20); //prior for Sayasone study
+    M[3] ~ normal(85, 20);  //prior for Ramsay study
+    M[4] ~ normal(160, 20); //prior for Autopsy study
     k ~ normal(k_mean, k_sd);
     pr_recovery ~ beta(850,200);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
-    h ~ normal(1.4, 0.1);
+    h ~ normal(10, 2);
     stoll_factor ~ normal(100, 50);
 }
 
