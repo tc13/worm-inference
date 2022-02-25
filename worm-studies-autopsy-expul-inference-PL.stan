@@ -87,14 +87,14 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
   
     //prior distributions
-    y1 ~ gamma(20, 5);
-    gamma ~ beta(200, 200); //strong prior for density dependence - informed by extracted worm fecund. data
+    y1 ~ gamma(10, 5);
+    gamma ~ beta(250, 250); //strong prior for density dependence - informed by extracted worm fecund. data
     M[1] ~ normal(39, 20);  //prior for Elkins study
     M[2] ~ normal(187, 20); //prior for Sayasone study
     M[3] ~ normal(85, 20);  //prior for Ramsay study
     M[4] ~ normal(160, 20); //prior for Autopsy study
     k ~ normal(k_mean, k_sd);
-    pr_recovery ~ beta(850,200);
+    pr_recovery ~ beta(250,50);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
     stoll_factor ~ normal(100, 50);
