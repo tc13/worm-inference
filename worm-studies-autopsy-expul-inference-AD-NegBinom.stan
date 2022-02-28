@@ -89,8 +89,8 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
     
     //prior distributions
-    L0 ~ normal(10, 10);
-    M0 ~ normal(1000, 50);
+    L0 ~ gamma(10, 5);
+    M0 ~ normal(2000, 100);
     M[1] ~ normal(39, 20);  //prior for Elkins study
     M[2] ~ normal(187, 20); //prior for Sayasone study
     M[3] ~ normal(85, 20);  //prior for Ramsay study
@@ -100,7 +100,7 @@ model{
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
     h ~ normal(20, 2);
-    stoll_factor ~ normal(100, 50);
+    stoll_factor ~ normal(200, 20);
 }
 
 generated quantities{

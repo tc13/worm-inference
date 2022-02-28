@@ -97,7 +97,7 @@ model{
     pr_recovery ~ beta(250,50);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
-    stoll_factor ~ normal(100, 50);
+    stoll_factor ~ normal(200, 20);
 }
 
 generated quantities{
