@@ -47,17 +47,17 @@ transformed parameters{
      if(epg_expul[i]==0 && worms_expul[i]==0){ //if no observed eggs or worms
           marginal_expul[i,1] = neg_binomial_2_lpmf(0 | M[study_id[i]], k[study_id[i]]);
           for(j in 2:delta_worm){
-              marginal_expul[i,j] = poisson_lpmf(0 | (epg_expected[(j-1)]+eta[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
+              marginal_expul[i,j] = poisson_log_lpmf(0 | (log(epg_expected[(j-1)])+eta[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
           }
       }
         else if(epg_expul[i]>0 && worms_expul[i]==0){ //if eggs observed but no worms
            marginal_expul[i,1] = negative_infinity(); //impossible that there are zero worms
            for(j in 2:delta_worm){
-              marginal_expul[i,j] = poisson_lpmf(epg_expul[i] | (epg_expected[(j-1)]+eta[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
+              marginal_expul[i,j] = poisson_log_lpmf(epg_expul[i] | (log(epg_expected[(j-1)])+eta[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
            }
         }else{ //if >0 worms observed
           for(j in 1:delta_worm){
-            marginal_expul[i,j] = poisson_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]+eta[i])) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
+            marginal_expul[i,j] = poisson_log_lpmf(epg_expul[i] | (log(epg_expected[(worms_expul[i]+j-1)])+eta[i])) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
           }
         }
       }
@@ -67,7 +67,7 @@ transformed parameters{
           marginal_autopsy[i] = rep_row_vector(log(0.25),4);
         else{
           for(j in 1:4){
-            marginal_autopsy[i,j] = poisson_lpmf(epg_autopsy[i] | (epg_expected[worms_autopsy[i]]*j+eta[(i+N_expul)])) + neg_binomial_2_lpmf(worms_autopsy[i] | M[N_studies], k[N_studies]);
+            marginal_autopsy[i,j] = poisson_log_lpmf(epg_autopsy[i] | (log(epg_expected[worms_autopsy[i]]*j)+eta[(i+N_expul)])) + neg_binomial_2_lpmf(worms_autopsy[i] | M[N_studies], k[N_studies]);
           }
         }
     }
