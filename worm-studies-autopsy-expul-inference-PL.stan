@@ -44,7 +44,7 @@ transformed parameters{
      if(epg_expul[i]==0 && worms_expul[i]==0){ //if no observed eggs or worms
           marginal_expul[i,1] = neg_binomial_2_lpmf(0 | M[study_id[i]], k[study_id[i]]);
           for(j in 2:delta_worm){
-              marginal_expul[i,j] = poisson_lpmf(0 | (epg_expected[(worms_expul[i]+j-1)])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
+              marginal_expul[i,j] = poisson_lpmf(0 | (epg_expected[(j-1)])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
           }
       }
         else if(epg_expul[i]>0 && worms_expul[i]==0){ //if eggs observed but no worms
@@ -80,7 +80,7 @@ model{
   
     //prior distributions
     y1 ~ gamma(10, 5);
-    gamma ~ beta(250, 250); //strong prior for density dependence - informed by extracted worm fecund. data
+    gamma ~ beta(50, 50); //strong prior for density dependence - informed by extracted worm fecund. data
     M[1] ~ normal(39, 20);  //prior for Elkins study
     M[2] ~ normal(187, 20); //prior for Sayasone study
     M[3] ~ normal(85, 20);  //prior for Ramsay study

@@ -1,6 +1,5 @@
 //inference model for worm burden from expulsion studies
 //Multi-study model, power law function
-//Negative binomial egg error
 
 data {
   int<lower=1> N_expul;     //Number of individuals in worm expulsion studies studies
@@ -26,12 +25,13 @@ transformed data{
 parameters {
   real<lower=0> y1; //worm fecundity param (power law)
   real<lower=0,upper=1> gamma; //worm fecundity param (power law)
-  real<lower=0> M[N_studies];   //Mean worm burden
+  real<lower=0> M[N_studies];  //Mean worm burden
   real<lower=0> k[N_studies];  //dispersion of worms
   real<lower=0, upper=1> pr_recovery; //probability of worm recovery from expulsion
   real<lower=0> k_mean; //hyper-parameter for k
   real<lower=0> k_sd; //hyper-parameter for k
-  real<lower=0> h; //neg binom variance in egg output
+  real eta[N]; //random effect per person
+  real<lower=0> eta_sd; //standard deviation of eta
 }
 
 transformed parameters{
@@ -44,19 +44,19 @@ transformed parameters{
    //Expulsion studies likelihood
    for(i in 1:N_expul){
      if(epg_expul[i]==0 && worms_expul[i]==0){ //if no observed eggs or worms
-        marginal_expul[i,1] = neg_binomial_2_lpmf(0 | M[study_id[i]], k[study_id[i]]);
-        for(j in 2:delta_worm){
-            marginal_expul[i,j] = neg_binomial_2_lpmf(0 | (epg_expected[(j-1)]),h) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
-        }
-    }
+          marginal_expul[i,1] = neg_binomial_2_lpmf(0 | M[study_id[i]], k[study_id[i]]);
+          for(j in 2:delta_worm){
+              marginal_expul[i,j] = poisson_lpmf(0 | (epg_expected[(j-1)]+eta[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
+          }
+      }
         else if(epg_expul[i]>0 && worms_expul[i]==0){ //if eggs observed but no worms
            marginal_expul[i,1] = negative_infinity(); //impossible that there are zero worms
            for(j in 2:delta_worm){
-              marginal_expul[i,j] = neg_binomial_2_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]), h) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery); 
+              marginal_expul[i,j] = poisson_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]+eta[i])) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery); 
            }
         }else{ //if >0 worms observed
           for(j in 1:delta_worm){
-            marginal_expul[i,j] = neg_binomial_2_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]), h) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
+            marginal_expul[i,j] = poisson_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]+eta[i])) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
           }
         }
       }
@@ -66,7 +66,7 @@ transformed parameters{
           marginal_autopsy[i] = rep_row_vector(log(0.25),4);
         else{
           for(j in 1:4){
-            marginal_autopsy[i,j] = neg_binomial_2_lpmf(epg_autopsy[i] | epg_expected[worms_autopsy[i]]*j, h) + neg_binomial_2_lpmf(worms_autopsy[i] | M[N_studies], k[N_studies]);
+            marginal_autopsy[i,j] = poisson_lpmf(epg_autopsy[i] | (epg_expected[worms_autopsy[i]]*j+eta[(i+N_expul)])) + neg_binomial_2_lpmf(worms_autopsy[i] | M[N_studies], k[N_studies]);
           }
         }
     }
@@ -79,7 +79,7 @@ model{
     //increment log likelihood for autopsy study
     for(i in 1:N_autopsy)
       target += log_sum_exp(marginal_autopsy[i]);
-   
+  
     //prior distributions
     y1 ~ gamma(10, 5);
     gamma ~ beta(50, 50); //strong prior for density dependence - informed by extracted worm fecund. data
@@ -88,10 +88,11 @@ model{
     M[3] ~ normal(85, 20);  //prior for Ramsay study
     M[4] ~ normal(160, 20); //prior for Autopsy study
     k ~ normal(k_mean, k_sd);
-     pr_recovery ~ beta(250,50);
+    pr_recovery ~ beta(250,50);
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
-    h ~ normal(20, 2);
+    eta ~ normal(0, eta_sd);
+    eta_sd ~ exponential(2);
 }
 
 generated quantities{
