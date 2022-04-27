@@ -1,5 +1,5 @@
 //Inference model for worm burden from expulsion studies & autopsy
-//Multi-study model, algebraic decay function
+//Multi-study model, power-law function
 //Zero inflated neg binom variance in egg output
 
 data {
@@ -24,8 +24,8 @@ transformed data{
 }
 
 parameters {
-  real<lower=0> L0; //param for algebraic decay function
-  real<lower=0> M0; //param for algebraic decay function
+  real<lower=0> y1; //worm fecundity param (power law)
+  real<lower=0,upper=1> gamma; //worm fecundity param (power law)
   real<lower=0> M[N_studies];   //Mean worm burden
   real<lower=0> k[N_studies];  //dispersion of worms
   real<lower=0, upper=1> pr_recovery; //probability of worm recovery from expulsion
@@ -41,7 +41,7 @@ transformed parameters{
    vector[max_worm] epg_expected; //Expected egg output given worm value
    vector[max_worm] sens; //sensitivity given worm burden (catalytic function)
    for(i in 1:max_worm){
-     epg_expected[i] = (i*L0*M0)/(i+M0); //algebraic decay function
+     epg_expected[i] = y1*i^gamma; //power law function;
      sens[i] = 1-exp(-sens_rate*i);
    }
    //Expulsion studies likelihood
@@ -94,16 +94,16 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
     
     //prior distributions
-    L0 ~ normal(12, 1);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
-    M0 ~ normal(2000, 100);
+    y1 ~ normal(12, 1);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
+    gamma ~ beta(10, 10);   //prior for density dependence
     M[1] ~ normal(39, 20);  //prior for Elkins study
     M[2] ~ normal(187, 20); //prior for Sayasone study
     M[3] ~ normal(85, 20);  //prior for Ramsay study
     M[4] ~ normal(160, 20); //prior for Autopsy study
     k ~ normal(k_mean, k_sd);
     pr_recovery ~ beta(50, 25);
-    k_mean ~ normal(0.5, 2);
-    k_sd ~ normal(0.5, 1);
+    k_mean ~ normal(0.5, 1);
+    k_sd ~ normal(0.5, 0.5);
     h ~ normal(20, 1);
     sens_rate ~ beta(1, 1); //Faecal egg count sensitivity
 }
