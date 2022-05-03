@@ -32,17 +32,17 @@ parameters {
   real<lower=0> k_mean; //hyper-parameter for k
   real<lower=0> k_sd; //hyper-parameter for k
   real<lower=0> h; //neg binom variance in egg output
-  real<lower=0, upper=1> sens_rate; //sensitivity parameter (ZINB)
+  real<lower=0> sens_b; //Michaelis-Menten sensitivity parameter (ZINB)
 }
 
 transformed parameters{
    matrix[N_expul,delta_worm] marginal_expul; //Marginal probability of each possible worm value
    matrix[N_autopsy, 4] marginal_autopsy; //Marginal probability of each possible worm value
    vector[max_worm] epg_expected; //Expected egg output given worm value
-   vector[max_worm] sens; //sensitivity given worm burden (catalytic function)
+   real sens[max_worm]; //sensitivity given worm burden (catalytic function)
    for(i in 1:max_worm){
      epg_expected[i] = (i*L0*M0)/(i+M0); //algebraic decay function
-     sens[i] = 1-exp(-sens_rate*i);
+     sens[i] = i/(sens_b+i);   
    }
    //Expulsion studies likelihood
    for(i in 1:N_expul){
@@ -105,7 +105,7 @@ model{
     k_mean ~ normal(0.5, 2);
     k_sd ~ normal(0.5, 1);
     h ~ normal(20, 1);
-    sens_rate ~ beta(1, 1); //Faecal egg count sensitivity
+    sens_b ~ normal(0, 3); //Egg count sens parameter
 }
 
 generated quantities{
