@@ -94,14 +94,15 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
     
     //prior distributions
-    L0 ~ normal(12, 2);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
+    L0 ~ normal(12, 5);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
     M0 ~ normal(2000, 100);
     M[1] ~ normal(39, 10);  //prior for Elkins study
     M[2] ~ normal(187, 10); //prior for Sayasone study
     M[3] ~ normal(85, 10);  //prior for Ramsay study
     M[4] ~ normal(160, 10); //prior for Autopsy study
+    M[5] ~ normal(49, 10); //prior for Haswell study
     k ~ normal(k_mean, k_sd);
-    pr_recovery ~ beta(50, 25);
+    pr_recovery ~ beta(2, 2);
     k_mean ~ exponential(1);
     k_sd ~ exponential(2);
     h ~ exponential(0.1);
