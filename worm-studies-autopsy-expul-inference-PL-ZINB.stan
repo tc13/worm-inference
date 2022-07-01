@@ -12,6 +12,7 @@ data {
   int<lower=2> N_expul_studies;  //Number of expulsion studies
   int<lower=1, upper=N_expul_studies> study_id[N_expul]; //study ID
   int<lower=1> delta_worm; //Difference between observed worm burden and possible max
+  int<lower=0, upper=N_expul_studies> stoll_study; //which study ID uses Stoll diagnostic, if none can be set to zero
 }
 
 transformed data{
@@ -33,6 +34,7 @@ parameters {
   real<lower=0> k_sd; //hyper-parameter for k
   real<lower=0> h; //neg binom variance in egg output
   real<lower=0> sens_b; //Michaelis-Menten sensitivity parameter (ZINB)
+  real<lower=1> stoll_factor; //factor to multiply Stoll by
 }
 
 transformed parameters{
@@ -59,15 +61,28 @@ transformed parameters{
         }
         else if(epg_expul[i]>0 && worms_expul[i]==0){  //if eggs observed but no worms
            marginal_expul[i,1] = negative_infinity();  //impossible that there are zero worms
+           
+          if(stoll_study==study_id[i]){
+            for(j in 2:delta_worm){
+              marginal_expul[i,j] = bernoulli_lpmf(1 | sens[(j-1)]) + neg_binomial_2_lpmf(epg_expul[i] | (epg_expected[(j-1)]*stoll_factor), h) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery);
+            }
+          }else{
            for(j in 2:delta_worm){
               marginal_expul[i,j] = bernoulli_lpmf(1 | sens[(j-1)]) + neg_binomial_2_lpmf(epg_expul[i] | epg_expected[(j-1)], h) + neg_binomial_2_lpmf((j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(0 | (j-1), pr_recovery); 
            }
-        }
-        else{  //if >0 worms and eggs observed
-          for(j in 1:delta_worm){
-            marginal_expul[i,j] = bernoulli_lpmf(1 | sens[(worms_expul[i]+j-1)]) + neg_binomial_2_lpmf(epg_expul[i] | epg_expected[(worms_expul[i]+j-1)], h) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
           }
         }
+        else{  //if >0 worms and eggs observed
+            if(stoll_study==study_id[i]){
+               for(j in 1:delta_worm){
+                  marginal_expul[i,j] = bernoulli_lpmf(1 | sens[(worms_expul[i]+j-1)]) + neg_binomial_2_lpmf(epg_expul[i] | (epg_expected[(worms_expul[i]+j-1)]*stoll_factor), h) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
+                }
+             }else{
+                for(j in 1:delta_worm){
+                   marginal_expul[i,j] = bernoulli_lpmf(1 | sens[(worms_expul[i]+j-1)]) + neg_binomial_2_lpmf(epg_expul[i] | epg_expected[(worms_expul[i]+j-1)], h) + neg_binomial_2_lpmf((worms_expul[i]+j-1) | M[study_id[i]], k[study_id[i]]) + binomial_lpmf(worms_expul[i] | (worms_expul[i]+j-1), pr_recovery);
+                }
+              }
+          }
       }
     //Autopsy study likelihood - can divide epg by factor of 1,2,3 or 4
     for(i in 1:N_autopsy){
@@ -94,19 +109,20 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
     
     //prior distributions
-    y1 ~ normal(12, 5);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
-    gamma ~ beta(10, 10);   //prior for density dependence
+    y1 ~ normal(12, 2);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
+    gamma ~ beta(20, 20);   //prior for density dependence
     M[1] ~ normal(39, 10);  //prior for Elkins study
     M[2] ~ normal(187, 10); //prior for Sayasone study
     M[3] ~ normal(85, 10);  //prior for Ramsay study
     M[4] ~ normal(160, 10); //prior for Autopsy study
     M[5] ~ normal(49, 10); //prior for Haswell study
-    k ~ normal(k_mean, k_sd);
-    pr_recovery ~ beta(2, 2);
-    k_mean ~ exponential(1);
-    k_sd ~ exponential(2);
-    h ~ exponential(0.1);
-    sens_b ~ normal(1, 1); //Egg count sens parameter
+    k ~ normal(k_mean, k_sd); //heriarchical values for k
+    k_mean ~ exponential(1);  //mean of k
+    k_sd ~ exponential(2); //variance of k 
+    pr_recovery ~ beta(2, 2); //probability of worm recovery
+    h ~ exponential(0.1);  //egg count dispersion
+    sens_b ~ normal(1, 1); //egg count sensitivity parameter
+    stoll_factor ~ normal(50, 5); //stoll factor parameter
 }
 
 generated quantities{
