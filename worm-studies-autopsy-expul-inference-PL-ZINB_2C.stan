@@ -30,7 +30,8 @@ parameters {
   real<lower=0> y1[2]; //worm fecundity param (power law)
   real<lower=0,upper=1> gamma[2]; //worm fecundity param (power law)
   real<lower=0> h[2]; //neg binom variance in egg output
-  real<lower=0> h_rate; //expected value of h
+  real<lower=0> h_mean; //hyper parameter for h
+  real<lower=0> h_sd; //hyper parameter for h
   real<lower=0> M[N_studies];   //Mean worm burden
   real<lower=0> k[N_studies];  //dispersion of worms
   real<lower=0, upper=1> pr_recovery; //probability of worm recovery from expulsion
@@ -133,8 +134,9 @@ model{
     k_mean ~ exponential(1);  //mean of k
     k_sd ~ exponential(2); //variance of k 
     pr_recovery ~ beta(2, 2); //probability of worm recovery
-    h ~ exponential(h_rate);  //egg count dispersion
-    h_rate ~ exponential(0.1); //mean of h
+    h ~ normal(h_mean, h_sd);  //egg count dispersion
+    h_mean ~ exponential(0.2); //mean of h
+    h_sd ~ exponential(2); //sd of h
     sens_b ~ normal(1, 1); //egg count sensitivity parameter
     stoll_factor ~ normal(50, 5); //stoll factor parameter
 }
