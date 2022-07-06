@@ -123,22 +123,22 @@ model{
       target += log_sum_exp(marginal_autopsy[i]);
     
     //prior distributions
-    y1 ~ normal(12, 2);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
+    y1 ~ normal(12, 3);     //expected output from 1 worm: 3160 (Wykoff & Ariyaprakai, Opisthorchis viverrini in Thailand-egg production in man and laboratory animals. Journal of Parasitology 52:4 (1966)) divided by daily mass of human stool - 250g for developing countries (Rose, C., Parker, A., Jefferson, B. and Cartmell, E., 2015. The characterization of feces and urine: a review of the literature to inform advanced treatment technology. Critical reviews in environmental science and technology, 45(17), pp.1827-1879)
     gamma ~ beta(20, 20);   //prior for density dependence
     M[1] ~ normal(39, 10);  //prior for Elkins study
     M[2] ~ normal(187, 10); //prior for Sayasone study
     M[3] ~ normal(85, 10);  //prior for Ramsay study
-    M[4] ~ normal(160, 10); //prior for Autopsy study
-    M[5] ~ normal(49, 10); //prior for Haswell study
+    M[4] ~ normal(49, 10); //prior for Haswell study
+    M[5] ~ normal(160, 10); //prior for Autopsy study
     k ~ normal(k_mean, k_sd); //heriarchical values for k
     k_mean ~ exponential(1);  //mean of k
     k_sd ~ exponential(2); //variance of k 
     pr_recovery ~ beta(2, 2); //probability of worm recovery
     h ~ normal(h_mean, h_sd);  //egg count dispersion
-    h_mean ~ exponential(0.2); //mean of h
+    h_mean ~ exponential(1); //mean of h
     h_sd ~ exponential(2); //sd of h
     sens_b ~ normal(1, 1); //egg count sensitivity parameter
-    stoll_factor ~ normal(50, 5); //stoll factor parameter
+    stoll_factor ~ normal(50, 10); //stoll factor parameter
 }
 
 generated quantities{
