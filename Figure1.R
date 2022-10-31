@@ -1,31 +1,9 @@
 ##Figures for PNAS manuscript
 ##Figure 1 - relationship between worm burden and egg counts
 
-library(scales)
+require(scales)
 require(lamW)
-
-#Round function
-round2 = function(x, n=0) {
-  posneg = sign(x)
-  z = abs(x)*10^n
-  z = z + 0.5 + sqrt(.Machine$double.eps)
-  z = trunc(z)
-  z = z/10^n
-  z*posneg
-}
-
-#Estimate k from prevalence and mean worm burden
-k_estim <- function(p,m){
-  numer = -m*log(1-p)
-  denom1 = log(1-p)
-  denom2 = (1-p)^(1/m)*log(1-p)/m
-  lambert = lambertWm1(denom2)
-  k = numer/(denom1-m*lambert)
-  return(k)
-}
-
-#Power Law function
-PL_func <- function(x, y1=53, gamma=0.96) y1*x^gamma #power law function
+source("funcs.R")
 
 #Read in datasets
 d  <- read.csv("datasets.csv")
@@ -58,7 +36,6 @@ d$epg_log <- log(d$epg + 1)
 #############################
 
 #pdf("Fig1A-observed-data.pdf", width=7.5, height=6)
-
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 
 #TH1 - Autopsy Study
@@ -142,7 +119,6 @@ TH4_idx <- which(expulsion$survey=="TH4")
 LAO1_idx <- which(expulsion$survey=="LAO1")
 
 #pdf("Fig1B-inferred-relationship.pdf", width=7.5, height=6)
-
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 
 #TH1 - Autopsy Study
@@ -182,7 +158,6 @@ axis(2, las=2, at=log(c(1, 10, 100, 1000, 10000, 60000)),
      cex.axis=1.2)
 title(ylab = "Eggs per gram of stool", line=4.5, cex.lab=1.3)  
 title(xlab = "Worm burden inferred", line=2.5, cex.lab=1.3)
-
 #dev.off()
 
 ##############################################
@@ -211,7 +186,6 @@ LAO_CrI_log <- log(LAO_CrI+1)
 
 #TH1 - Autopsy Study
 #pdf("Fig1C-PL-curve.pdf", width=7.5, height=6)
-
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 
 plot(autopsy$worms_log, autopsy$epg_inferred_log, 
@@ -271,8 +245,8 @@ legend("topright",
 
 lines(y_PL_TH_log~x_log, lty=2, col="tomato3", lwd=4)
 lines(y_PL_LAO_log~x_log, lty=2, col="darkblue", lwd=4)
-rethinking::shade(TH_CrI_log, x_log, col=alpha("tomato3", 0.4))
-rethinking::shade(LAO_CrI_log, x_log, col=alpha("darkblue", 0.4))
+shade(TH_CrI_log, x_log, col=alpha("tomato3", 0.4))
+shade(LAO_CrI_log, x_log, col=alpha("darkblue", 0.4))
 #dev.off()
 
 ####################################
@@ -357,8 +331,8 @@ title(xlab = "Worm burden inferred", line=2.5, cex.lab=1.3)
 
 lines(y_PL_TH_log~x_log, lty=2, col="tomato3", lwd=4)
 lines(y_PL_LAO_log~x_log, lty=2, col="darkblue", lwd=4)
-rethinking::shade(PL_TH_pred_log, x_log, col=alpha("tomato3", 0.3))
-rethinking::shade(PL_LAO_pred_log, x_log, col=alpha("darkblue", 0.3))
+shade(PL_TH_pred_log, x_log, col=alpha("tomato3", 0.3))
+shade(PL_LAO_pred_log, x_log, col=alpha("darkblue", 0.3))
 
 points(log(val$epg_corrected+1)~log(val$worms_corrected+1), pch=15, cex=2.2, 
        col= val_cols)
@@ -382,5 +356,4 @@ legend("topright",
        pt.cex=2.2, cex=1.2,
        pch=0,
        bty="n")
-
 #dev.off()

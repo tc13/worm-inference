@@ -1,18 +1,10 @@
 ##Figures for PNAS manuscript
 ##Figure 2 - k and diagnostic sensitivity
-library(scales)
+require(scales)
+source("funcs.R")
 
-nbh_sens<- function(x, b) x/(x+b) #Zero inflated negative binomial sensitivity
-obs_prev_func <- function(prev, se, sp=1) prev*se + (1-prev)*(1-sp)
-prev <- function(x, k) 1-pnbinom(q=0, mu=x, size=k)
+#Read in model output
 m <- readRDS("posteriors/wm-pl-nbh-2p.rds")
-
-#examine model output
-getDist <- function(x){
-  m = mean(x)
-  int95 = quantile(x, probs=c(0.025, 0.975))
-  return(c(m, int95))
-}
 
 ############################## 
 ## Panel A - estimates of k ##
@@ -35,7 +27,6 @@ k.df <- data.frame(
 
 val.df <- data.frame(
   study = factor(c("LAO2", "LAO3"), levels=c("LAO2", "LAO3")),
-  #mean = c(0.86275820, 0.08511544, 0.04751100),
   mean = c(0.08511544, 0.04751100),
   x= c(7, 8))
 
@@ -43,8 +34,7 @@ col_vec <- c("grey20", "darkred", "darkgreen", "orange", "darkblue", "black")
 val_cols <- c("darkolivegreen1",  "darkolivegreen4")
 
 #pdf("Fig2A-k-surveys.pdf", height=5, width=7)
-
-par(mar=c(2,5,1,1))
+par(mar=c(2,5,1,1), xpd=F)
 
 plot(k.df$mean~k.df$x, ylim=c(0,1), axes=F,
      cex.lab=1.4, xlab="", xlim=c(1,9), type="n",
@@ -100,7 +90,7 @@ k_cols <- c(alpha(col_vec[1:5],0.65), val_cols)
 
 ## Plot
 #pdf("Fig2B-k-vs-M.pdf", height=5, width=7)
-par(mar=c(5,5,1,1))
+par(mar=c(5,5,1,1), xpd=F)
 plot(k.all$k~ log(k.all$M+1), ylim=c(0,0.6), 
      xlab="", ylab="", axes=F, cex=1.9, xlim=log(c(0, 500)+1),
      col=k_cols, pch=c(rep(16, 5), rep(15, 3)))
@@ -112,7 +102,6 @@ title(ylab=expression(paste("Worm burden dispersion ", italic("k"))), cex.lab=1.
 title(xlab="Population mean worm burden", line=3.0, cex.lab=1.4)
 #dev.off()
 
-
 ###################################### 
 ## Panel C - individual sensitivity ##
 ######################################
@@ -120,13 +109,12 @@ title(xlab="Population mean worm burden", line=3.0, cex.lab=1.4)
 b <- mean(m$b)
 b_lower <- quantile(m$b, probs=0.025)
 b_upper <- quantile(m$b, probs=0.975)
-
 worms <- c(0, 1, 5, 20, 100, 500)
 sens_worms <- nbh_sens(worms, b=b)
 sens_interval <- t(cbind(nbh_sens(worms, b=b_upper), nbh_sens(worms, b=b_lower)))
 
 #pdf("Fig2C-indiv-sens.pdf",height=5, width=7)
-par(mar=c(5,5,1,1))
+par(mar=c(5,5,1,1), xpd=F)
 plot(log(worms+1), sens_worms, xlab="Individual worm burden", ylab="", 
      ylim=c(0,1), axes=F, cex=1.5, cex.lab=1.4,
      col="grey10", pch=16)
@@ -135,19 +123,12 @@ axis(1, at = log(c(0, 1, 5, 20, 100, 500)+1),
      labels = c(0, 1, 5, 20, 100, 500),
      cex.axis=1.3, lwd=1.2)
 axis(2, las=2, cex.axis=1.3, lwd=1.2)
-rethinking::shade(sens_interval, log(worms+1), col=alpha("grey30", 0.35))
+shade(sens_interval, log(worms+1), col=alpha("grey30", 0.35))
 #dev.off()
 
 ###############################################
 ## Panel D - pop sensitivity and worm burden ##
 ###############################################
-pop_sensitivity <- function(x, k, b){
-  max_worms = 1:35000
-  pop_prob_dist = dnbinom(max_worms, mu=x, size=k) #Matrix with worm prob dist given NB population params
-  sens_x = nbh_sens(max_worms, b=b) #Individual level sensitivity given worm burden x
-  pop_sens = sum(pop_prob_dist*sens_x)/(1-dnbinom(0, mu=x, size=k))
-  return(pop_sens)
-}
 
 mu <- c(0.0001, seq(0.001, 2, by=0.01), seq(2, 50, by=0.5), seq(50, 100, by=5), seq(100,500,by=20)) #Population mean worm burden
 pop_sens_kmu <- sapply(mu, FUN=pop_sensitivity, k=k_mu, b=b) #Population sensitivity
@@ -159,8 +140,7 @@ leg_text <- c(expression(paste(italic("k")," = 0.10")),
                      expression(paste(italic("k")," = 0.70")))
 
 #pdf("Fig2D-pop-sens-worm.pdf",height=5, width=7)
-
-par(mar=c(5,5,1,1))
+par(mar=c(5,5,1,1), xpd=F)
 plot(log(mu+1), pop_sens_kmu, type="l", xlab="", lwd=2, col="grey4",
      ylab="", axes=F, ylim=c(0.2, 1), xlim=log(c(1,501)))
 lines(log(mu+1), pop_sens_k10, lwd=2, col="blue3")
@@ -174,9 +154,7 @@ title(ylab="Diagnostic sensitivity", line=3.8, cex.lab=1.4)
 legend(title="Worm burden dispersion", legend=leg_text, 
        x = log(1), y=1.04, lty=c(1,1,1), lwd=2.5, 
        col=c("blue3","grey5","red3"), cex=1.25, bty = "n")
-
 #dev.off()
-
 
 ###########################################
 ## Panel E - True vs observed prevalence ##
@@ -188,11 +166,10 @@ true_prev_k70 <- prev(x=mu, k = 0.7)
 
 observed_prev_kmu <- obs_prev_func(prev=true_prev_kmu, se = pop_sens_kmu, sp = 1)
 observed_prev_k10 <- obs_prev_func(prev=true_prev_k10, se = pop_sens_k10, sp = 1)
-observed_prev_k90 <- obs_prev_func(prev=true_prev_k70, se = pop_sens_k70, sp = 1)
+observed_prev_k70 <- obs_prev_func(prev=true_prev_k70, se = pop_sens_k70, sp = 1)
 
 #pdf("Fig2E-prev-true-vs-obs.pdf", height=5, width=7)
-
-par(mar=c(5,5,1,1))
+par(mar=c(5,5,1,1), xpd=F)
 plot(observed_prev_kmu, true_prev_kmu , type="l", ylim=c(0,0.49), xlim=c(0,0.5), 
      xlab="", ylab="", axes=F, lwd=2.2, col="grey5")
 axis(1, cex.axis=1.3, lwd=1.3, at = c(0, 0.1, 0.2,0.3,0.4,0.5), labels=c(0,10,20,30,40,50))
@@ -211,7 +188,6 @@ lines(x=c(-0.06, 0.2), y=rep(true_prev_k70[median(which(round(observed_prev_k70,
       lty=2, lwd=2, col="red3")
 lines(x=rep(0.2,2), y=c(-0.06, true_prev_k70[median(which(round(observed_prev_k70, digits = 2)==0.2))]),
       lty=2, lwd=2, col="grey5")
-
 #dev.off()
 
 ###########################################
@@ -227,8 +203,7 @@ sp_leg_text <- c(expression(paste(italic("sp")," = 1")),
               expression(paste(italic("sp")," = 0.90")))
 
 #pdf("Fig2F-specificity-prev.pdf", height=5, width=7)
-
-par(mar=c(5,5,1,1))
+par(mar=c(5,5,1,1), xpd=F)
 plot(obs_p_kmu_sp100, true_prev_kmu , type="l", ylim=c(0,0.49), xlim=c(0,0.5), 
      xlab="", ylab="", axes=F, lwd=2.2, col="grey5")
 axis(1, cex.axis=1.3, lwd=1.3, at = c(0, 0.1, 0.2,0.3,0.4,0.5), labels=c(0,10,20,30,40,50))
@@ -242,6 +217,4 @@ title(ylab="True prevalence (%)", line=3.7, cex.lab=1.4)
 legend(title="Diagnostic specificity", legend=sp_leg_text, 
        x = 0.001, y=0.52, lty=c(1,1,1), lwd=2.5, 
        col=c("grey5","darkorchid3","goldenrod2"), cex=1.25, bty = "n")
-
 #dev.off()
-
