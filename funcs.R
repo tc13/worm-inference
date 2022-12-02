@@ -75,7 +75,7 @@ PL_func <- function(x, y1=53, gamma=0.96) y1*x^gamma
 #Zero inflated negative binomial sensitivity
 nbh_sens<- function(x, b) x/(x+b)
 
-#observed prevalecne given true prevalence, sensivity and specificity
+#observed prevalence given true prevalence, sensitivity and specificity
 obs_prev_func <- function(prev, se, sp=1) prev*se + (1-prev)*(1-sp)
 
 #True prevalence based on M and k from negative binomial

@@ -1,4 +1,4 @@
-##Figures for PNAS manuscript
+##Figures for PRSB manuscript
 ##Figure 2 - k and diagnostic sensitivity
 require(scales)
 source("funcs.R")
@@ -33,11 +33,11 @@ val.df <- data.frame(
 col_vec <- c("grey20", "darkred", "darkgreen", "orange", "darkblue", "black")
 val_cols <- c("darkolivegreen1",  "darkolivegreen4")
 
-#pdf("Fig2A-k-surveys.pdf", height=5, width=7)
-par(mar=c(2,5,1,1), xpd=F)
+pdf("Figs/Fig2A-k-surveys.pdf", height=5, width=7)
+par(mar=c(3,5,1,1), xpd=F)
 
 plot(k.df$mean~k.df$x, ylim=c(0,1), axes=F,
-     cex.lab=1.4, xlab="", xlim=c(1,9), type="n",
+     cex.lab=1.4, xlim=c(1,9), type="n", xlab="",
      ylab=expression(paste("Worm burden dispersion ", italic("k"))))
 
 arrows(angle=90, x0=k.df$x, x1=k.df$x, y0=k.df$mean, y1=k.df$upper, length = 0.08,
@@ -50,6 +50,8 @@ points(k.df$mean~k.df$x, cex=1.7, pch=16, col=alpha(col_vec, 0.8))
 
 points(k.df$mean~k.df$x, cex=1.7, lwd=1.7)
 
+axis(1, at=c(1,8), labels=NA, lwd=1.2)
+title(xlab="Survey            ", line=1.2, cex.lab=1.45)
 axis(2, las=2, cex.axis=1.3, lwd=1.2)
 
 text(c("TH1", "TH2", "TH3", "TH4"), 
@@ -69,7 +71,7 @@ text("Prediction \ninterval",
 points(val.df$mean~val.df$x, col=val_cols, pch=15, cex=1.9)
 points(val.df$mean~val.df$x, pch=0, cex=1.9, lwd=1.7)
 
-#dev.off()
+dev.off()
 
 ############################################
 ## Panel B - relationship between k and M ##
@@ -89,7 +91,7 @@ k.all <- data.frame(
 k_cols <- c(alpha(col_vec[1:5],0.65), val_cols)
 
 ## Plot
-#pdf("Fig2B-k-vs-M.pdf", height=5, width=7)
+pdf("Figs/Fig2B-k-vs-M.pdf", height=5, width=7)
 par(mar=c(5,5,1,1), xpd=F)
 plot(k.all$k~ log(k.all$M+1), ylim=c(0,0.6), 
      xlab="", ylab="", axes=F, cex=1.9, xlim=log(c(0, 500)+1),
@@ -100,7 +102,7 @@ axis(1, cex.axis=1.3, lwd=1.2, at=log(c(0, 1, 5, 20, 100, 500)+1),
 axis(2, las=2, cex.axis=1.3, lwd=1.2)
 title(ylab=expression(paste("Worm burden dispersion ", italic("k"))), cex.lab=1.4, line=3.4)
 title(xlab="Population mean worm burden", line=3.0, cex.lab=1.4)
-#dev.off()
+dev.off()
 
 ###################################### 
 ## Panel C - individual sensitivity ##
@@ -113,18 +115,18 @@ worms <- c(0, 1, 5, 20, 100, 500)
 sens_worms <- nbh_sens(worms, b=b)
 sens_interval <- t(cbind(nbh_sens(worms, b=b_upper), nbh_sens(worms, b=b_lower)))
 
-#pdf("Fig2C-indiv-sens.pdf",height=5, width=7)
+pdf("Figs/Fig2C-indiv-sens.pdf",height=5, width=7)
 par(mar=c(5,5,1,1), xpd=F)
 plot(log(worms+1), sens_worms, xlab="Individual worm burden", ylab="", 
      ylim=c(0,1), axes=F, cex=1.5, cex.lab=1.4,
      col="grey10", pch=16)
-title(ylab="Probability of detecting fecal eggs", line=3.6, cex.lab=1.4)
+title(ylab="Probability of detecting faecal eggs", line=3.6, cex.lab=1.4)
 axis(1, at = log(c(0, 1, 5, 20, 100, 500)+1), 
      labels = c(0, 1, 5, 20, 100, 500),
      cex.axis=1.3, lwd=1.2)
 axis(2, las=2, cex.axis=1.3, lwd=1.2)
 shade(sens_interval, log(worms+1), col=alpha("grey30", 0.35))
-#dev.off()
+dev.off()
 
 ###############################################
 ## Panel D - pop sensitivity and worm burden ##
@@ -139,7 +141,7 @@ leg_text <- c(expression(paste(italic("k")," = 0.10")),
                      expression(paste(italic("k")," = 0.36")), 
                      expression(paste(italic("k")," = 0.70")))
 
-#pdf("Fig2D-pop-sens-worm.pdf",height=5, width=7)
+pdf("Figs/Fig2D-pop-sens-worm.pdf",height=5, width=7)
 par(mar=c(5,5,1,1), xpd=F)
 plot(log(mu+1), pop_sens_kmu, type="l", xlab="", lwd=2, col="grey4",
      ylab="", axes=F, ylim=c(0.2, 1), xlim=log(c(1,501)))
@@ -154,7 +156,7 @@ title(ylab="Diagnostic sensitivity", line=3.8, cex.lab=1.4)
 legend(title="Worm burden dispersion", legend=leg_text, 
        x = log(1), y=1.04, lty=c(1,1,1), lwd=2.5, 
        col=c("blue3","grey5","red3"), cex=1.25, bty = "n")
-#dev.off()
+dev.off()
 
 ###########################################
 ## Panel E - True vs observed prevalence ##
@@ -168,7 +170,7 @@ observed_prev_kmu <- obs_prev_func(prev=true_prev_kmu, se = pop_sens_kmu, sp = 1
 observed_prev_k10 <- obs_prev_func(prev=true_prev_k10, se = pop_sens_k10, sp = 1)
 observed_prev_k70 <- obs_prev_func(prev=true_prev_k70, se = pop_sens_k70, sp = 1)
 
-#pdf("Fig2E-prev-true-vs-obs.pdf", height=5, width=7)
+pdf("Figs/Fig2E-prev-true-vs-obs.pdf", height=5, width=7)
 par(mar=c(5,5,1,1), xpd=F)
 plot(observed_prev_kmu, true_prev_kmu , type="l", ylim=c(0,0.49), xlim=c(0,0.5), 
      xlab="", ylab="", axes=F, lwd=2.2, col="grey5")
@@ -177,7 +179,7 @@ axis(2, las=2, cex.axis=1.3, lwd=1.3, at = c(0, 0.1, 0.2,0.3,0.4,0.5), labels=c(
 lines(observed_prev_k10, true_prev_k10, col="blue3", lwd=2.2)
 lines(observed_prev_k70, true_prev_k70, col="red3", lwd=2.2)
 abline(0, 1, lty=5, lwd=2)
-title(xlab="Observed prevalence from fecal eggs (%)", cex.lab=1.4)
+title(xlab="Observed prevalence from faecal eggs (%)", cex.lab=1.4)
 title(ylab="True prevalence (%)", line=3.7, cex.lab=1.4)
 
 lines(x=c(-0.06, 0.2), y=rep(true_prev_k10[median(which(round(observed_prev_k10, digits = 2)==0.2))],2),
@@ -188,7 +190,7 @@ lines(x=c(-0.06, 0.2), y=rep(true_prev_k70[median(which(round(observed_prev_k70,
       lty=2, lwd=2, col="red3")
 lines(x=rep(0.2,2), y=c(-0.06, true_prev_k70[median(which(round(observed_prev_k70, digits = 2)==0.2))]),
       lty=2, lwd=2, col="grey5")
-#dev.off()
+dev.off()
 
 ###########################################
 ## Panel E - Impact of reduced specificity ##
@@ -202,7 +204,7 @@ sp_leg_text <- c(expression(paste(italic("sp")," = 1")),
               expression(paste(italic("sp")," = 0.95")), 
               expression(paste(italic("sp")," = 0.90")))
 
-#pdf("Fig2F-specificity-prev.pdf", height=5, width=7)
+pdf("Figs/Fig2F-specificity-prev.pdf", height=5, width=7)
 par(mar=c(5,5,1,1), xpd=F)
 plot(obs_p_kmu_sp100, true_prev_kmu , type="l", ylim=c(0,0.49), xlim=c(0,0.5), 
      xlab="", ylab="", axes=F, lwd=2.2, col="grey5")
@@ -211,10 +213,10 @@ axis(2, las=2, cex.axis=1.3, lwd=1.3, at = c(0, 0.1, 0.2,0.3,0.4,0.5), labels=c(
 lines(obs_p_kmu_sp95, true_prev_kmu, col="darkorchid3", lwd=2.2)
 lines(obs_p_kmu_sp90, true_prev_kmu, col="goldenrod2", lwd=2.2)
 abline(0, 1, lty=5, lwd=2)
-title(xlab="Observed prevalence from fecal eggs (%)", cex.lab=1.4)
+title(xlab="Observed prevalence from faecal eggs (%)", cex.lab=1.4)
 title(ylab="True prevalence (%)", line=3.7, cex.lab=1.4)
 
 legend(title="Diagnostic specificity", legend=sp_leg_text, 
        x = 0.001, y=0.52, lty=c(1,1,1), lwd=2.5, 
        col=c("grey5","darkorchid3","goldenrod2"), cex=1.25, bty = "n")
-#dev.off()
+dev.off()

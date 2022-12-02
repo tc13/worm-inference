@@ -1,4 +1,4 @@
-##Figures for PNAS manuscript
+##Figures for PRSB manuscript
 ##Figure 1 - relationship between worm burden and egg counts
 
 require(scales)
@@ -35,7 +35,7 @@ d$epg_log <- log(d$epg + 1)
 ## Panel A - Original data ##
 #############################
 
-#pdf("Fig1A-observed-data.pdf", width=7.5, height=6)
+pdf("Figs/Fig1A-observed-data.pdf", width=7.5, height=6)
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 
 #TH1 - Autopsy Study
@@ -67,14 +67,14 @@ points(d$worms_log[LAO1.indx], d$epg_log[LAO1.indx],
 points(d$worms_log[LAO1.indx], d$epg_log[LAO1.indx],
        col=alpha("black", 0.75), cex=1.2)
 
-axis(1, at=log(c(1, 2, 10, 100, 1000, 5000)), 
+axis(1, at=log(c(1, 2, 11, 101, 1001, 5001)), 
      labels=c("0", "1" ,"10", "100", "1000", "5000"), 
      cex.axis=1.2)
-axis(2, las=2, at=log(c(1, 10, 100, 1000, 10000, 60000)),
+axis(2, las=2, at=log(c(1, 11, 101, 1001, 10001, 60001)),
      labels=c("0", "10", "100", "1000", "10000", "60000"),
      cex.axis=1.2)
 title(ylab = "Eggs per gram of stool", line=4.5, cex.lab=1.3)  
-title(xlab = "Worm burden recovered", line=2.5, cex.lab=1.3)
+title(xlab = "Worm burden (recovered)", line=2.5, cex.lab=1.3)
 legend("topright", 
        legend=c("TH1 (Autopsy)",
                 "TH2 (Expulsion)",
@@ -93,11 +93,11 @@ legend("topright",
                 "",
                 ""),
        inset=c(0.311,-0.4), xpd=T, horiz=F,
-       pt.cex=1.5, cex=1.2,
+       pt.cex=1.5, cex=1.2, pt.lwd=1.2,
        pch=1,
        col=alpha("black", 0.75),
        bty="n")
-#dev.off()
+dev.off()
 
 ######################################
 ## Panel 2 - inferred worms burdens ##
@@ -118,7 +118,7 @@ TH3_idx <- which(expulsion$survey=="TH3")
 TH4_idx <- which(expulsion$survey=="TH4")
 LAO1_idx <- which(expulsion$survey=="LAO1")
 
-#pdf("Fig1B-inferred-relationship.pdf", width=7.5, height=6)
+pdf("Figs/Fig1B-inferred-relationship.pdf", width=7.5, height=6)
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 
 #TH1 - Autopsy Study
@@ -150,15 +150,15 @@ points(expulsion$worms_inferred_log[LAO1_idx], d$epg_log[LAO1.indx],
 points(expulsion$worms_inferred_log[LAO1_idx], d$epg_log[LAO1.indx],
        col=alpha("black", 0.75), cex=1.2)
 
-axis(1, at=log(c(1, 2, 10, 100, 1000, 5000)), 
+axis(1, at=log(c(1, 2, 11, 101, 1001, 5001)), 
      labels=c("0", "1" ,"10", "100", "1000", "5000"), 
      cex.axis=1.2)
-axis(2, las=2, at=log(c(1, 10, 100, 1000, 10000, 60000)),
+axis(2, las=2, at=log(c(1, 11, 101, 1001, 10001, 60001)),
      labels=c("0", "10", "100", "1000", "10000", "60000"),
      cex.axis=1.2)
 title(ylab = "Eggs per gram of stool", line=4.5, cex.lab=1.3)  
-title(xlab = "Worm burden inferred", line=2.5, cex.lab=1.3)
-#dev.off()
+title(xlab = "Worm burden (inferred)", line=2.5, cex.lab=1.3)
+dev.off()
 
 ##############################################
 ## Panel 3 - Fitted relationship by country ##
@@ -185,7 +185,7 @@ TH_CrI_log <- log(TH_CrI+1)
 LAO_CrI_log <- log(LAO_CrI+1)
 
 #TH1 - Autopsy Study
-#pdf("Fig1C-PL-curve.pdf", width=7.5, height=6)
+pdf("Figs/Fig1C-PL-curve.pdf", width=7.5, height=6)
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 
 plot(autopsy$worms_log, autopsy$epg_inferred_log, 
@@ -217,14 +217,14 @@ points(expulsion$worms_inferred_log[LAO1_idx], d$epg_log[LAO1.indx],
 points(expulsion$worms_inferred_log[LAO1_idx], d$epg_log[LAO1.indx],
        col=alpha("black", 0.75), cex=1.2)
 
-axis(1, at=log(c(1, 2, 10, 100, 1000, 5000)), 
+axis(1, at=log(c(1, 2, 11, 101, 1001, 5001)), 
      labels=c("0", "1" ,"10", "100", "1000", "5000"), 
      cex.axis=1.2)
-axis(2, las=2, at=log(c(1, 10, 100, 1000, 10000, 60000)),
+axis(2, las=2, at=log(c(1, 11, 101, 1001, 10001, 60001)),
      labels=c("0", "10", "100", "1000", "10000", "60000"),
      cex.axis=1.2)
 title(ylab = "Eggs per gram of stool", line=4.5, cex.lab=1.3)  
-title(xlab = "Worm burden inferred", line=2.5, cex.lab=1.3)
+title(xlab = "Worm burden (inferred)", line=2.5, cex.lab=1.3)
 
 legend("topright", 
        legend=c("Thailand (TH1-4)",
@@ -238,7 +238,7 @@ legend("topright",
        legend=c("",
                 ""),
        inset=c(0.312,-0.36), xpd=T, horiz=F,
-       pt.cex=1.5, cex=1.2,
+       pt.cex=1.5, cex=1.2, pt.lwd=1.2,
        pch=1,
        col=alpha("black", 0.75),
        bty="n")
@@ -247,7 +247,7 @@ lines(y_PL_TH_log~x_log, lty=2, col="tomato3", lwd=4)
 lines(y_PL_LAO_log~x_log, lty=2, col="darkblue", lwd=4)
 shade(TH_CrI_log, x_log, col=alpha("tomato3", 0.4))
 shade(LAO_CrI_log, x_log, col=alpha("darkblue", 0.4))
-#dev.off()
+dev.off()
 
 ####################################
 ## Panel 4 - Prediction intervals ##
@@ -275,8 +275,8 @@ ov_epg_correction_factor <- Ht_Ov_epg_2008_corrected/768
 
 ov_worms_corrected <- val$worms[2:3]*(1/mean(m$pr_recovery))
 
-val$worms_corrected <- c(2588, ov_worms_corrected)
-val$epg_corrected <- c(32712, Ht_Ov_epg_2008_corrected, 31*ov_epg_correction_factor)
+val$worms_corrected <- c(val$worms[1], ov_worms_corrected)
+val$epg_corrected <- c(val$epg[1]/stoll, Ht_Ov_epg_2008_corrected, 31*ov_epg_correction_factor)
 val$k <- k_estim(p=val$prev, m=val$worms_corrected)
 
 PL_TH_pred <- sapply(y_PL_TH, function(x) qnbinom(p=c(0.05, 0.95), mu=x, size= h_TH))
@@ -287,7 +287,7 @@ PL_LAO_pred_log <- log(PL_LAO_pred + 1)
 val_cols <- c("goldenrod2", "darkolivegreen1",  "darkolivegreen")
 
 #Plot
-#pdf("Fig1D-pred-interval-90.pdf", width=7.5, height=6)
+pdf("Figs/Fig1D-pred-interval-90.pdf", width=7.5, height=6)
 
 par(mar=c(5, 6.5 ,7.5, 2), xpd=T)
 #TH1 - Autopsy Study
@@ -320,14 +320,14 @@ points(expulsion$worms_inferred_log[LAO1_idx], d$epg_log[LAO1.indx],
 points(expulsion$worms_inferred_log[LAO1_idx], d$epg_log[LAO1.indx],
        col=alpha("black", 0.4), cex=1.2)
 
-axis(1, at=log(c(1, 2, 10, 100, 1000, 5000)), 
+axis(1, at=log(c(1, 2, 11, 101, 1001, 5001)), 
      labels=c("0", "1" ,"10", "100", "1000", "5000"), 
      cex.axis=1.2)
-axis(2, las=2, at=log(c(1, 10, 100, 1000, 10000, 60000)),
+axis(2, las=2, at=log(c(1, 11, 101, 1001, 10001, 60001)),
      labels=c("0", "10", "100", "1000", "10000", "60000"),
      cex.axis=1.2)
 title(ylab = "Eggs per gram of stool", line=4.5, cex.lab=1.3)  
-title(xlab = "Worm burden inferred", line=2.5, cex.lab=1.3)
+title(xlab = "Worm burden (inferred)", line=2.5, cex.lab=1.3)
 
 lines(y_PL_TH_log~x_log, lty=2, col="tomato3", lwd=4)
 lines(y_PL_LAO_log~x_log, lty=2, col="darkblue", lwd=4)
@@ -344,7 +344,7 @@ legend("topright",
                 "LAO2 (Expulsion)",
                 "LAO3 (Expulsion)"),
        pch=rep(15,3), inset=c(0.15,-0.36), xpd=T, horiz=F,
-       pt.cex=2.2, cex=1.2,
+       pt.cex=2.2, cex=1.2, 
        col=val_cols,
        bty="n")
 
@@ -353,7 +353,7 @@ legend("topright",
                 "",
                 ""),
        inset=c(0.412,-0.36), xpd=T, horiz=F,
-       pt.cex=2.2, cex=1.2,
+       pt.cex=2.2, cex=1.2, pt.lwd=1.6,
        pch=0,
        bty="n")
-#dev.off()
+dev.off()
