@@ -7,3 +7,5 @@ Models the relationship between worm burden and egg output as a power law (PL) f
 Code for the inference model is contained within `helminth-inference.stan`, which is run using CmdStanR from `run-helminth-model.R`
 
 The posterior model output in .rds format can then be parsed using Rscripts `Figure1.R` and `Figure2.R` 
+
+The file containing the relevant data `datasets.csv` can be downloaded [from Dryad](https://datadryad.org/stash/dataset/doi:10.5061/dryad.q83bk3jn6). 
